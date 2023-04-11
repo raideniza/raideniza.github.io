@@ -1,1 +1,1 @@
-# raideniza.github.io
+Updated version of Henke's BaSim which gives healers more functionality. All of their movement and aggro mechanics are correct as far as I can tell. Healer targeting mechanics taken from https://docs.google.com/document/d/1g4QEFpU8VSQsRaXT-1hQePnj7gCUAelnacYxWmsV2tg/edit?usp=sharing.
