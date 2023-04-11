@@ -205,12 +205,12 @@ function simStartStopButtonOnClick() {
 		let totalHealers = 0;
 		let wave = simWaveSelect.value;
 		switch(Number(wave)) {
-//		case 0:
-//		    maxRunnersAlive = 3;
-//		    totalRunners = 3;
-//		    maxHealersAlive = 1;
-//		    totalHealers = 1;
-//		    break;
+		case 0:
+		    maxRunnersAlive = 3;
+		    totalRunners = 3;
+		    maxHealersAlive = 1;
+		    totalHealers = 1;
+		    break;
 		case 1:
 			maxRunnersAlive = 2;
 			totalRunners = 2;
@@ -664,28 +664,29 @@ heHealer.prototype.tick = function() {
     // healer stands still when it spawns, until player comes into LOS
     // If multiple players in LOS, randomly choose (rand=0 for def, 1 for col)
 	if (this.justSpawned === true) {
-	    if (hasLineOfSight(this.x,this.y,plX,plY,15) && hasLineOfSight(this.x,this.y,baCollectorX,baCollectorY,15)) {
+	    if (mHasLineOfSight(plX,plY,this.x,this.y,15) && mHasLineOfSight(baCollectorX,baCollectorY,this.x,this.y,15)) {
             let rand = Math.floor(Math.random() * 2);
-            console.log("rand", rand);
             if (rand === 0) {
+                console.log(baTickCounter + ": healer " + this.id + " chose defender");
                 this.destinationX = findTargetTile(this.x, this.y, plX, plY)[0];
                 this.destinationY = findTargetTile(this.x, this.y, plX, plY)[1];
                 this.isTargetingPlayer = true;
             }
             else {
+                console.log(baTickCounter + ": healer " + this.id + " chose collector");
                 this.destinationX = findTargetTile(this.x, this.y, baCollectorX, baCollectorY)[0];
                 this.destinationY = findTargetTile(this.x, this.y, baCollectorX, baCollectorY)[1];
                 this.isTargetingCollector = true;
             }
             this.justSpawned = false;
 	    }
-	    else if (hasLineOfSight(this.x,this.y,plX,plY,15)) {
+	    else if (mHasLineOfSight(plX,plY,this.x,this.y,15)) {
 	        this.destinationX = findTargetTile(this.x, this.y, plX, plY)[0];
             this.destinationY = findTargetTile(this.x, this.y, plX, plY)[1];
             this.isTargetingPlayer = true;
             this.justSpawned = false;
 	    }
-	    else if (hasLineOfSight(this.x,this.y,baCollectorX,baCollectorY,15)) {
+	    else if (mHasLineOfSight(baCollectorX,baCollectorY,this.x,this.y,15)) {
 	        this.destinationX = findTargetTile(this.x, this.y, baCollectorX, baCollectorY)[0];
             this.destinationY = findTargetTile(this.x, this.y, baCollectorX, baCollectorY)[1];
             this.isTargetingCollector = true;
@@ -704,7 +705,7 @@ heHealer.prototype.tick = function() {
             // only consider runners in LOS; choose a random runner among those in LOS
             let inSightRunners = [];
             for (let i = 0; i < baRunners.length; ++i) {
-                if (hasLineOfSight(this.x, this.y, baRunners[i].x, baRunners[i].y, 5)) {
+                if (mHasLineOfSight(this.x, this.y, baRunners[i].x, baRunners[i].y, 5)) {
                     inSightRunners.push(baRunners[i]);
                 }
             }
@@ -731,23 +732,24 @@ heHealer.prototype.tick = function() {
 
         // try to target player every tick only after 2 ticks of pause
         else if (this.lastTarget === 'runner' && this.sprayTimer > 2) {
-            if (hasLineOfSight(this.x, this.y, plX, plY, 15) && hasLineOfSight(this.x,this.y,baCollectorX,baCollectorY,15)) {
+            if (mHasLineOfSight(plX,plY,this.x,this.y,15) && mHasLineOfSight(baCollectorX,baCollectorY,this.x,this.y,15)) {
                 let rand = Math.floor(Math.random() * 2);
-                console.log("rand", rand);
                 if (rand === 0) {
+                    console.log(baTickCounter + ": healer " + this.id + " chose defender");
                     this.isTargetingPlayer = true;
                     this.tryTarget('player');
                 }
                 else {
+                    console.log(baTickCounter + ": healer " + this.id + " chose collector");
                     this.isTargetingCollector = true;
                     this.tryTarget('collector');
                 }
             }
-            else if (hasLineOfSight(this.x,this.y,plX,plY,15)) {
+            else if (mHasLineOfSight(plX,plY,this.x,this.y,15)) {
                 this.isTargetingPlayer = true;
                 this.tryTarget('player');
             }
-            else if (hasLineOfSight(this.x,this.y,baCollectorX,baCollectorY,15)) {
+            else if (mHasLineOfSight(baCollectorX,baCollectorY,this.x,this.y,15)) {
                 this.isTargetingCollector = true;
                 this.tryTarget('collector');
             }
@@ -807,7 +809,7 @@ heHealer.prototype.tryTarget = function(type) {
     if (type === 'runner') {
         this.targetX = findTargetTile(this.x, this.y, this.runnerTarget.x, this.runnerTarget.y)[0];
         this.targetY = findTargetTile(this.x, this.y, this.runnerTarget.x, this.runnerTarget.y)[1];
-        if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0 && hasLineOfSight(this.x,this.y,this.runnerTarget.x,this.runnerTarget.y,5)) {
+        if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0 && mHasLineOfSight(this.runnerTarget.x,this.runnerTarget.y,this.x,this.y,5)) {
             this.isTargetingRunner = false;
             this.lastTarget = 'runner'
             this.sprayTimer = 0;
@@ -820,7 +822,7 @@ heHealer.prototype.tryTarget = function(type) {
 
             this.targetX = findTargetTile(this.x, this.y, this.runnerTarget.x, this.runnerTarget.y)[0];
             this.targetY = findTargetTile(this.x, this.y, this.runnerTarget.x, this.runnerTarget.y)[1];
-            if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0 && hasLineOfSight(this.x,this.y,this.runnerTarget.x,this.runnerTarget.y,5)) {
+            if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0 && mHasLineOfSight(this.runnerTarget.x,this.runnerTarget.y,this.x,this.y,5)) {
                 this.isTargetingRunner = false;
                 this.lastTarget = 'runner';
                 this.sprayTimer = 0;
@@ -830,8 +832,7 @@ heHealer.prototype.tryTarget = function(type) {
     else if (type === 'player') {
         this.targetX = findTargetTile(this.x, this.y, plX, plY)[0];
         this.targetY = findTargetTile(this.x, this.y, plX, plY)[1];
-        if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0 && hasLineOfSight(this.x,this.y,plX,plY,15)) {
-            console.log("this aint right");
+        if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0 && mHasLineOfSight(plX,plY,this.x,this.y,15)) {
             this.isTargetingPlayer = false;
             this.lastTarget = 'player'
             this.sprayTimer = 0;
@@ -844,7 +845,7 @@ heHealer.prototype.tryTarget = function(type) {
 
             this.targetX = findTargetTile(this.x, this.y, plX, plY)[0];
             this.targetY = findTargetTile(this.x, this.y, plY, plY)[1];
-            if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0 && hasLineOfSight(this.x,this.y,plX,plY,15)) {
+            if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0 && mHasLineOfSight(plX,plY,this.x,this.y,15)) {
                 this.isTargetingPlayer = false;
                 this.lastTarget = 'player';
                 this.sprayTimer = 0;
@@ -854,7 +855,7 @@ heHealer.prototype.tryTarget = function(type) {
     else if (type === 'collector') {
         this.targetX = findTargetTile(this.x, this.y, baCollectorX, baCollectorY)[0];
         this.targetY = findTargetTile(this.x, this.y, baCollectorX, baCollectorY)[1];
-        if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0 && hasLineOfSight(this.x,this.y,baCollectorX,baCollectorY,15)) {
+        if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0 && mHasLineOfSight(baCollectorX,baCollectorY,this.x,this.y,15)) {
             this.isTargetingCollector = false;
             this.lastTarget = 'player'
             this.sprayTimer = 0;
@@ -867,7 +868,7 @@ heHealer.prototype.tryTarget = function(type) {
 
             this.targetX = findTargetTile(this.x, this.y, baCollectorX, baCollectorY)[0];
             this.targetY = findTargetTile(this.x, this.y, baCollectorX, baCollectorY)[1];
-            if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0 && hasLineOfSight(this.x,this.y,baCollectorX,baCollectorY,15)) {
+            if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0 && mHasLineOfSight(baCollectorX,baCollectorY,this.x,this.y,15)) {
                 this.isTargetingCollector = false;
                 this.lastTarget = 'player';
                 this.sprayTimer = 0;
@@ -1590,7 +1591,10 @@ function mDrawMap() {
 		}
 	}
 }
-function mHasLineOfSight(x1, y1, x2, y2) {
+function mHasLineOfSight(x1, y1, x2, y2, range=99) {
+    if (tileDistance(x1, y1, x2, y2) > range) {
+        return false;
+    }
 	let dx = x2 - x1;
 	let dxAbs = Math.abs(dx);
 	let dy = y2 - y1;
@@ -1664,128 +1668,12 @@ function mHasLineOfSight(x1, y1, x2, y2) {
 	}
 	return true;
 }
-function hasLineOfSight(x1, y1, x2, y2, range) {
-	if (useNewLosAlgorithm) {
-		if (x1 > x2) {
-			let tempX2 = x2, tempY2 = y2;
-			x2 = x1;
-			y2 = y1;
-			x1 = tempX2;
-			y1 = tempY2;
-		}
-	}
-
-//    console.log(tileDistance(x1, y1, x2, y2), range);
-    if (tileDistance(x1, y1, x2, y2) > range) {
-        return false;
-    }
-
-	let dx = x2 - x1;
-	let dxAbs = Math.abs(dx);
-	let dy = y2 - y1;
-	let dyAbs = Math.abs(dy);
-
-	if (dxAbs > dyAbs) {
-		let xTile = x1;
-		let y = (y1 << 16) + 0x8000;
-		let slope = Math.trunc((dy << 16) / dxAbs); // Integer division
-
-		let xInc;
-		let xMask;
-		if (dx > 0) {
-			xInc = 1;
-			xMask = mLOS_WEST_MASK | mLOS_FULL_MASK;
-		} else {
-			xInc = -1;
-			xMask = mLOS_EAST_MASK | mLOS_FULL_MASK;
-		}
-		let yMask;
-		if (dy < 0) {
-			y -= 1; // For correct rounding
-			yMask = mLOS_NORTH_MASK | mLOS_FULL_MASK;
-		} else {
-			yMask = mLOS_SOUTH_MASK | mLOS_FULL_MASK;
-		}
-
-		while (xTile !== x2) {
-			xTile += xInc;
-			let yTile = y >>> 16;
-			if ((mGetTileFlag(xTile, yTile) & xMask) !== 0) {
-				return false;
-			}
-			y += slope;
-			let newYTile = y >>> 16;
-			if (newYTile !== yTile && (mGetTileFlag(xTile, newYTile) & yMask) !== 0) {
-				return false;
-			}
-		}
-	} else {
-		let yTile = y1;
-		let x = (x1 << 16) + 0x8000;
-		let slope = Math.trunc((dx << 16) / dyAbs); // Integer division
-
-		let yInc;
-		let yMask;
-		if (dy > 0) {
-			yInc = 1;
-			yMask = mLOS_SOUTH_MASK | mLOS_FULL_MASK;
-		} else {
-			yInc = -1;
-			yMask = mLOS_NORTH_MASK | mLOS_FULL_MASK;
-		}
-
-		let xMask;
-		if (dx < 0) {
-			x -= 1; // For correct rounding
-			xMask = mLOS_EAST_MASK | mLOS_FULL_MASK;
-		} else {
-			xMask = mLOS_WEST_MASK | mLOS_FULL_MASK;
-		}
-
-		if (useNewLosAlgorithm && dxAbs == dyAbs) {
-			// Special case for diagonal lines in RuneTek 5
-
-			let xInc = 1; // Always west->east.
-			let xTile = x1;
-			while (yTile !== y2) {
-				if (
-					(
-						(mGetTileFlag(xTile + xInc, yTile) & xMask) !== 0 ||
-						(mGetTileFlag(xTile + xInc, yTile + yInc) & yMask) !== 0
-					) && (
-						(mGetTileFlag(xTile, yTile + yInc) & yMask) !== 0 ||
-						(mGetTileFlag(xTile + xInc, yTile + yInc) & xMask) !== 0
-					)
-				) {
-					return false;
-				}
-				xTile += xInc;
-				yTile += yInc;
-			}
-		} else {
-			while (yTile !== y2) {
-				yTile += yInc;
-				let xTile = x >>> 16;
-				if ((mGetTileFlag(xTile, yTile) & yMask) !== 0) {
-					return false;
-				}
-				x += slope;
-				let newXTile = x >>> 16;
-				if (newXTile !== xTile && (mGetTileFlag(newXTile, yTile) & xMask) !== 0) {
-					return false;
-				}
-			}
-		}
-	}
-	return true;
-}
 var mCurrentMap;
 var mWidthTiles;
 var mHeightTiles;
 var mItemZones;
 var mItemZonesWidth;
 var mItemZonesHeight;
-var useNewLosAlgorithm = true;
 //}
 //{ RsRenderer - rr
 function rrInit(tileSize) {
