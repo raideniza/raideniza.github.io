@@ -710,7 +710,7 @@ heHealer.prototype.tick = function() {
             }
             if (inSightRunners.length > 0) {
                 let rand = Math.floor(Math.random() * inSightRunners.length);
-                this.runnerTarget = baRunners[rand];
+                this.runnerTarget = inSightRunners[rand];
                 this.isTargetingRunner = true;
                 this.tryTarget('runner');
             }
