@@ -807,7 +807,7 @@ heHealer.prototype.tryTarget = function(type) {
     if (type === 'runner') {
         this.targetX = findTargetTile(this.x, this.y, this.runnerTarget.x, this.runnerTarget.y)[0];
         this.targetY = findTargetTile(this.x, this.y, this.runnerTarget.x, this.runnerTarget.y)[1];
-        if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0) {
+        if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0 && hasLineOfSight(this.x,this.y,this.runnerTarget.x,this.runnerTarget.y,5)) {
             this.isTargetingRunner = false;
             this.lastTarget = 'runner'
             this.sprayTimer = 0;
@@ -820,7 +820,7 @@ heHealer.prototype.tryTarget = function(type) {
 
             this.targetX = findTargetTile(this.x, this.y, this.runnerTarget.x, this.runnerTarget.y)[0];
             this.targetY = findTargetTile(this.x, this.y, this.runnerTarget.x, this.runnerTarget.y)[1];
-            if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0) {
+            if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0 && hasLineOfSight(this.x,this.y,this.runnerTarget.x,this.runnerTarget.y,5)) {
                 this.isTargetingRunner = false;
                 this.lastTarget = 'runner';
                 this.sprayTimer = 0;
@@ -830,7 +830,8 @@ heHealer.prototype.tryTarget = function(type) {
     else if (type === 'player') {
         this.targetX = findTargetTile(this.x, this.y, plX, plY)[0];
         this.targetY = findTargetTile(this.x, this.y, plX, plY)[1];
-        if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0) {
+        if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0 && hasLineOfSight(this.x,this.y,plX,plY,15)) {
+            console.log("this aint right");
             this.isTargetingPlayer = false;
             this.lastTarget = 'player'
             this.sprayTimer = 0;
@@ -843,7 +844,7 @@ heHealer.prototype.tryTarget = function(type) {
 
             this.targetX = findTargetTile(this.x, this.y, plX, plY)[0];
             this.targetY = findTargetTile(this.x, this.y, plY, plY)[1];
-            if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0) {
+            if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0 && hasLineOfSight(this.x,this.y,plX,plY,15)) {
                 this.isTargetingPlayer = false;
                 this.lastTarget = 'player';
                 this.sprayTimer = 0;
@@ -853,7 +854,7 @@ heHealer.prototype.tryTarget = function(type) {
     else if (type === 'collector') {
         this.targetX = findTargetTile(this.x, this.y, baCollectorX, baCollectorY)[0];
         this.targetY = findTargetTile(this.x, this.y, baCollectorX, baCollectorY)[1];
-        if (tileDistance(this.x, this.y, baCollectorX, baCollectorY) === 0) {
+        if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0 && hasLineOfSight(this.x,this.y,baCollectorX,baCollectorY,15)) {
             this.isTargetingCollector = false;
             this.lastTarget = 'player'
             this.sprayTimer = 0;
@@ -866,7 +867,7 @@ heHealer.prototype.tryTarget = function(type) {
 
             this.targetX = findTargetTile(this.x, this.y, baCollectorX, baCollectorY)[0];
             this.targetY = findTargetTile(this.x, this.y, baCollectorX, baCollectorY)[1];
-            if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0) {
+            if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0 && hasLineOfSight(this.x,this.y,baCollectorX,baCollectorY,15)) {
                 this.isTargetingCollector = false;
                 this.lastTarget = 'player';
                 this.sprayTimer = 0;
