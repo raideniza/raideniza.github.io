@@ -720,6 +720,7 @@ heHealer.prototype.tick = function() {
             else {
                 let rnd = Math.floor(Math.random() * 8);
                 if (rnd === 0) {
+                    console.log(baTickCounter + ": healer " + this.id + " did random movement");
                     const wanderRange = 60;
                     let rndX = Math.floor(Math.random() * (2*wanderRange + 1));
                     this.destinationX = this.spawnX - wanderRange + rndX;
@@ -757,6 +758,7 @@ heHealer.prototype.tick = function() {
             else {
                 let rnd = Math.floor(Math.random() * 8);
                 if (rnd === 0) {
+                    console.log(baTickCounter + ": healer " + this.id + " did random movement");
                     const wanderRange = 60;
                     let rndX = Math.floor(Math.random() * (2*wanderRange + 1));
                     this.destinationX = this.spawnX - wanderRange + rndX;
@@ -771,6 +773,7 @@ heHealer.prototype.tick = function() {
         else {
             let rnd = Math.floor(Math.random() * 8);
             if (rnd === 0) {
+                console.log(baTickCounter + ": healer " + this.id + " did random movement");
                 const wanderRange = 60;
                 let rndX = Math.floor(Math.random() * (2*wanderRange + 1));
                 this.destinationX = this.spawnX - wanderRange + rndX;
@@ -793,7 +796,50 @@ heHealer.prototype.tick = function() {
 
     // move toward random runner in range found earlier when targeting runner
     else if (this.isTargetingRunner) {
-        this.tryTarget('runner');
+        if (this.runnerTarget.despawnCountdown === 0) {
+            console.log(baTickCounter +  ": retargeting");
+            this.isTargetingRunner = false;
+            this.lastTarget = 'runner';
+            this.sprayTimer = 0;
+
+            if (mHasLineOfSight(plX,plY,this.x,this.y,15) && mHasLineOfSight(baCollectorX,baCollectorY,this.x,this.y,15)) {
+                let rand = Math.floor(Math.random() * 2);
+                if (rand === 0) {
+                    console.log(baTickCounter + ": healer " + this.id + " chose defender");
+                    this.isTargetingPlayer = true;
+                    this.tryTarget('player');
+                }
+                else {
+                    console.log(baTickCounter + ": healer " + this.id + " chose collector");
+                    this.isTargetingCollector = true;
+                    this.tryTarget('collector');
+                }
+            }
+            else if (mHasLineOfSight(plX,plY,this.x,this.y,15)) {
+                this.isTargetingPlayer = true;
+                this.tryTarget('player');
+            }
+            else if (mHasLineOfSight(baCollectorX,baCollectorY,this.x,this.y,15)) {
+                this.isTargetingCollector = true;
+                this.tryTarget('collector');
+            }
+            // if nobody in LOS, do random movement
+            else {
+                let rnd = Math.floor(Math.random() * 8);
+                if (rnd === 0) {
+                    console.log(baTickCounter + ": healer " + this.id + " did random movement");
+                    const wanderRange = 60;
+                    let rndX = Math.floor(Math.random() * (2*wanderRange + 1));
+                    this.destinationX = this.spawnX - wanderRange + rndX;
+                    let rndY = Math.floor(Math.random() * (2*wanderRange + 1));
+                    this.destinationY = this.spawnY - wanderRange + rndY;
+                }
+                this.doMovement();
+            }
+        }
+        else {
+            this.tryTarget('runner');
+        }
     }
 }
 heHealer.prototype.tryTarget = function(type) {
@@ -811,7 +857,7 @@ heHealer.prototype.tryTarget = function(type) {
         this.targetY = findTargetTile(this.x, this.y, this.runnerTarget.x, this.runnerTarget.y)[1];
         if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0 && mHasLineOfSight(this.runnerTarget.x,this.runnerTarget.y,this.x,this.y,5)) {
             this.isTargetingRunner = false;
-            this.lastTarget = 'runner'
+            this.lastTarget = 'runner';
             this.sprayTimer = 0;
         }
         else {
@@ -834,7 +880,7 @@ heHealer.prototype.tryTarget = function(type) {
         this.targetY = findTargetTile(this.x, this.y, plX, plY)[1];
         if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0 && mHasLineOfSight(plX,plY,this.x,this.y,15)) {
             this.isTargetingPlayer = false;
-            this.lastTarget = 'player'
+            this.lastTarget = 'player';
             this.sprayTimer = 0;
         }
         else {
@@ -857,7 +903,7 @@ heHealer.prototype.tryTarget = function(type) {
         this.targetY = findTargetTile(this.x, this.y, baCollectorX, baCollectorY)[1];
         if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0 && mHasLineOfSight(baCollectorX,baCollectorY,this.x,this.y,15)) {
             this.isTargetingCollector = false;
-            this.lastTarget = 'player'
+            this.lastTarget = 'player';
             this.sprayTimer = 0;
         }
         else {
@@ -935,7 +981,7 @@ function findTargetTile(x1, y1, x2, y2) { // (x1,y1) for healer, (x2,y2) for tar
 function ruInit(sniffDistance) {
 	ruSniffDistance = sniffDistance;
 }
-function ruRunner(x, y, runnerRNG, isWave10, id) {
+function ruRunner(x, y, runnerRNG, isWave10, id) { // TODO: healers re-aggro if runner dies
 	this.x = x;
 	this.y = y;
 	this.destinationX = x;
@@ -1277,14 +1323,11 @@ function baTick() {
 	++baTickCounter;
 	baRunnersToRemove.length = 0;
 	for (let i = 0; i < baHealers.length; ++i) {
-    		baHealers[i].tick(); // TODO: healers and runners should be in same array.
-    	}
+        baHealers[i].tick(); // TODO: healers and runners should be in same array.
+    }
 	for (let i = 0; i < baRunners.length; ++i) {
 		baRunners[i].tick();
 	}
-//	for (let i = 0; i < baHealers.length; ++i) {
-//		baHealers[i].tick(); // TODO: healers and runners should be in same array.
-//	}
 	for (let i = 0; i < baRunnersToRemove.length; ++i) {
 		let runner = baRunnersToRemove[i];
 		let index = baRunners.indexOf(runner);
@@ -1456,10 +1499,10 @@ var baHealersAlive;
 var baHealersKilled;
 var baTotalHealers;
 var baMaxHealersAlive;
-var baCollectorX = -1;
-var baCollectorY = -1;
-var baCollectorTargetX = -1;
-var baCollectorTargetY = -1;
+var baCollectorX;
+var baCollectorY;
+var baCollectorTargetX;
+var baCollectorTargetY;
 var baCurrentRunnerId;
 var baCurrentHealerId;
 var baEastTrapCharges;
