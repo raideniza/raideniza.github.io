@@ -590,6 +590,21 @@ var plY;
 var plShouldPickupFood;
 var plStandStillCounter;
 var plRepairCountdown;
+
+function plPlayer(x,y,id) { // TODO: player class. Use inheritance to make role classes (def, col first, then healer)
+    this.id = id;
+    this.pathQueuePos;
+    this.shortestDistances
+    this.wayPoints;
+    this.pathQueueX;
+    this.pathQueueY;
+    this.x = x;
+    this.y= y;
+    this.shouldPickupFood;
+    this.standStillCounter
+    this.repairCountdown;
+}
+
 //}
 //{ Food - f
 function fFood(x, y, isGood, id) {
@@ -705,7 +720,7 @@ heHealer.prototype.tick = function() {
             // only consider runners in LOS; choose a random runner among those in LOS
             let inSightRunners = [];
             for (let i = 0; i < baRunners.length; ++i) {
-                if (mHasLineOfSight(this.x, this.y, baRunners[i].x, baRunners[i].y, 5)) {
+                if (mHasLineOfSight(this.x, this.y, baRunners[i].x, baRunners[i].y, 5) && !(baRunners[i].isDying)) {
                     inSightRunners.push(baRunners[i]);
                 }
             }
@@ -1441,7 +1456,7 @@ function baDrawEntities() {
 	for (let i = 0; i < baRunners.length; ++i) {
 		rrFill(baRunners[i].x, baRunners[i].y);
 	}
-	rSetDrawColor(10, 240, 10, 127);
+	rSetDrawColor(10, 240, 10, 85);
 	for (let i = 0; i < baHealers.length; ++i) {
 		rrFill(baHealers[i].x, baHealers[i].y);
 	}
