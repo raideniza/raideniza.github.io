@@ -270,8 +270,16 @@ function simStartStopButtonOnClick() {
 		baInit(maxRunnersAlive, totalRunners, maxHealersAlive, totalHealers, movements);
 		if (mCurrentMap === mWAVE10) {
 			plInit(baWAVE10_DEFENDER_SPAWN_X, baWAVE10_DEFENDER_SPAWN_Y);
+			plInit(baWAVE10_MAIN_SPAWN_X, baWAVE10_MAIN_SPAWN_Y);
+			plInit(baWAVE10_2A_SPAWN_X, baWAVE10_2A_SPAWN_Y);
+			plInit(baWAVE10_PLAYER_HEALER_SPAWN_X, baWAVE10_PLAYER_HEALER_SPAWN_Y);
+			plInit(baWAVE10_COLLECTOR_SPAWN_X, baWAVE10_COLLECTOR_SPAWN_Y);
 		} else {
 			plInit(baWAVE1_DEFENDER_SPAWN_X, baWAVE1_DEFENDER_SPAWN_Y);
+            plInit(baWAVE1_MAIN_SPAWN_X, baWAVE1_MAIN_SPAWN_Y);
+            plInit(baWAVE1_2A_SPAWN_X, baWAVE1_2A_SPAWN_Y);
+            plInit(baWAVE1_PLAYER_HEALER_SPAWN_X, baWAVE1_PLAYER_HEALER_SPAWN_Y);
+            plInit(baWAVE1_COLLECTOR_SPAWN_X, baWAVE1_COLLECTOR_SPAWN_Y);
 		}
 		console.log("Wave " + wave + " started!");
 		simTick();
@@ -591,20 +599,6 @@ var plShouldPickupFood;
 var plStandStillCounter;
 var plRepairCountdown;
 
-function plPlayer(x,y,id) { // TODO: player class. Use inheritance to make role classes (def, col first, then healer)
-    this.id = id;
-    this.pathQueuePos;
-    this.shortestDistances
-    this.wayPoints;
-    this.pathQueueX;
-    this.pathQueueY;
-    this.x = x;
-    this.y= y;
-    this.shouldPickupFood;
-    this.standStillCounter
-    this.repairCountdown;
-}
-
 //}
 //{ Food - f
 function fFood(x, y, isGood, id) {
@@ -674,7 +668,7 @@ function heHealer(x, y, id) {
 }
 heHealer.prototype.tick = function() {
 
-    // TODO: maintain list of players for determining aggro. Turn player into class
+    // TODO: create inheritance structure for players
 
     // healer stands still when it spawns, until player comes into LOS
     // If multiple players in LOS, randomly choose (rand=0 for def, 1 for col)
@@ -905,7 +899,7 @@ heHealer.prototype.tryTarget = function(type) {
             this.doMovement();
 
             this.targetX = findTargetTile(this.x, this.y, plX, plY)[0];
-            this.targetY = findTargetTile(this.x, this.y, plY, plY)[1];
+            this.targetY = findTargetTile(this.x, this.y, plX, plY)[1];
             if (tileDistance(this.x, this.y, this.targetX, this.targetY) === 0 && mHasLineOfSight(plX,plY,this.x,this.y,15)) {
                 this.isTargetingPlayer = false;
                 this.lastTarget = 'player';
@@ -1299,14 +1293,30 @@ const baWAVE1_RUNNER_SPAWN_X = 36;
 const baWAVE1_RUNNER_SPAWN_Y = 39;
 const baWAVE10_RUNNER_SPAWN_X = 42;
 const baWAVE10_RUNNER_SPAWN_Y = 38;
+const baWAVE1_NPC_HEALER_SPAWN_X = 42;
+const baWAVE1_NPC_HEALER_SPAWN_Y = 37;
+const baWAVE10_NPC_HEALER_SPAWN_X = 36;
+const baWAVE10_NPC_HEALER_SPAWN_Y = 39;
 const baWAVE1_DEFENDER_SPAWN_X = 33;
 const baWAVE1_DEFENDER_SPAWN_Y = 8;
 const baWAVE10_DEFENDER_SPAWN_X = 28;
 const baWAVE10_DEFENDER_SPAWN_Y = 8;
-const baWAVE1_HEALER_SPAWN_X = 42;
-const baWAVE1_HEALER_SPAWN_Y = 37;
-const baWAVE10_HEALER_SPAWN_X = 36;
-const baWAVE10_HEALER_SPAWN_Y = 39;
+const baWAVE1_PLAYER_HEALER_SPAWN_X = 32;
+const baWAVE1_PLAYER_HEALER_SPAWN_Y = 9;
+const baWAVE10_PLAYER_HEALER_SPAWN_X = 31;
+const baWAVE10_PLAYER_HEALER_SPAWN_Y = 9;
+const baWAVE1_MAIN_SPAWN_X = 31;
+const baWAVE1_MAIN_SPAWN_Y = 10;
+const baWAVE10_MAIN_SPAWN_X = 30;
+const baWAVE10_MAIN_SPAWN_Y = 10;
+const baWAVE1_2A_SPAWN_X = 30;
+const baWAVE1_2A_SPAWN_Y = 9;
+const baWAVE10_2A_SPAWN_X = 29;
+const baWAVE10_2A_SPAWN_Y = 9;
+const baWAVE1_COLLECTOR_SPAWN_X = 29;
+const baWAVE1_COLLECTOR_SPAWN_Y = 8;
+const baWAVE10_COLLECTOR_SPAWN_X = 32;
+const baWAVE10_COLLECTOR_SPAWN_Y = 8;
 function baInit(maxRunnersAlive, totalRunners, maxHealersAlive, totalHealers, runnerMovements) {
 	baRunners = [];
 	baRunnersToRemove = [];
@@ -1321,6 +1331,7 @@ function baInit(maxRunnersAlive, totalRunners, maxHealersAlive, totalHealers, ru
 	baRunnerMovements = runnerMovements;
 	baRunnerMovementsIndex = 0;
 
+
 	baHealers = [];
 
 	baTickCounter = 0;
@@ -1328,6 +1339,7 @@ function baInit(maxRunnersAlive, totalRunners, maxHealersAlive, totalHealers, ru
 	baCollectorY = -1;
 	baCollectorTargetX = -1;
 	baCollectorTargetY = -1;
+    baCurrentPlayerId = 1;
 	baCurrentRunnerId = 1;
 	baCurrentHealerId = 1;
 	baEastTrapCharges = 2;
@@ -1366,9 +1378,9 @@ function baTick() {
 		if (ENABLE_HEALERS) {
 			if (baHealersAlive < baMaxHealersAlive && baHealersKilled + baHealersAlive < baTotalHealers) {
 				if (mCurrentMap === mWAVE_1_TO_9) {
-					baHealers.push(new heHealer(baWAVE1_HEALER_SPAWN_X, baWAVE1_HEALER_SPAWN_Y, baCurrentHealerId++));
+					baHealers.push(new heHealer(baWAVE1_NPC_HEALER_SPAWN_X, baWAVE1_NPC_HEALER_SPAWN_Y, baCurrentHealerId++));
 				} else {
-					baHealers.push(new heHealer(baWAVE10_HEALER_SPAWN_X, baWAVE10_HEALER_SPAWN_Y, baCurrentHealerId));
+					baHealers.push(new heHealer(baWAVE10_NPC_HEALER_SPAWN_X, baWAVE10_NPC_HEALER_SPAWN_Y, baCurrentHealerId));
 				}
 				++baHealersAlive;
 			}
@@ -1460,7 +1472,7 @@ function baDrawEntities() {
 	for (let i = 0; i < baHealers.length; ++i) {
 		rrFill(baHealers[i].x, baHealers[i].y);
 	}
-	if (baCollectorX !== -1) {
+	if (baCollectorX !== -1) { // draw coll
 		rSetDrawColor(240, 240, 10, 200);
 		rrFill(baCollectorX, baCollectorY);
 	}
@@ -1514,12 +1526,14 @@ var baHealersAlive;
 var baHealersKilled;
 var baTotalHealers;
 var baMaxHealersAlive;
+var baPlayers;
 var baCollectorX;
 var baCollectorY;
 var baCollectorTargetX;
 var baCollectorTargetY;
 var baCurrentRunnerId;
 var baCurrentHealerId;
+var baCurrentPlayerId;
 var baEastTrapCharges;
 var baWestTrapCharges;
 //}
