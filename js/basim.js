@@ -270,16 +270,16 @@ function simStartStopButtonOnClick() {
 		baInit(maxRunnersAlive, totalRunners, maxHealersAlive, totalHealers, movements);
 		if (mCurrentMap === mWAVE10) {
 			plInit(baWAVE10_DEFENDER_SPAWN_X, baWAVE10_DEFENDER_SPAWN_Y);
-			plInit(baWAVE10_MAIN_SPAWN_X, baWAVE10_MAIN_SPAWN_Y);
-			plInit(baWAVE10_2A_SPAWN_X, baWAVE10_2A_SPAWN_Y);
-			plInit(baWAVE10_PLAYER_HEALER_SPAWN_X, baWAVE10_PLAYER_HEALER_SPAWN_Y);
-			plInit(baWAVE10_COLLECTOR_SPAWN_X, baWAVE10_COLLECTOR_SPAWN_Y);
+//			plInit(baWAVE10_MAIN_SPAWN_X, baWAVE10_MAIN_SPAWN_Y);
+//			plInit(baWAVE10_2A_SPAWN_X, baWAVE10_2A_SPAWN_Y);
+//			plInit(baWAVE10_PLAYER_HEALER_SPAWN_X, baWAVE10_PLAYER_HEALER_SPAWN_Y);
+//			plInit(baWAVE10_COLLECTOR_SPAWN_X, baWAVE10_COLLECTOR_SPAWN_Y);
 		} else {
 			plInit(baWAVE1_DEFENDER_SPAWN_X, baWAVE1_DEFENDER_SPAWN_Y);
-            plInit(baWAVE1_MAIN_SPAWN_X, baWAVE1_MAIN_SPAWN_Y);
-            plInit(baWAVE1_2A_SPAWN_X, baWAVE1_2A_SPAWN_Y);
-            plInit(baWAVE1_PLAYER_HEALER_SPAWN_X, baWAVE1_PLAYER_HEALER_SPAWN_Y);
-            plInit(baWAVE1_COLLECTOR_SPAWN_X, baWAVE1_COLLECTOR_SPAWN_Y);
+//            plInit(baWAVE1_MAIN_SPAWN_X, baWAVE1_MAIN_SPAWN_Y);
+//            plInit(baWAVE1_2A_SPAWN_X, baWAVE1_2A_SPAWN_Y);
+//            plInit(baWAVE1_PLAYER_HEALER_SPAWN_X, baWAVE1_PLAYER_HEALER_SPAWN_Y);
+//            plInit(baWAVE1_COLLECTOR_SPAWN_X, baWAVE1_COLLECTOR_SPAWN_Y);
 		}
 		console.log("Wave " + wave + " started!");
 		simTick();
