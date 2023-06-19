@@ -1,6 +1,7 @@
 'use strict';
 const HTML_CANVAS = "basimcanvas";
 const HTML_RUNNER_MOVEMENTS = "runnermovements";
+const HTML_HEALER_SPAWNS = "healerspawns";
 const HTML_START_BUTTON = "wavestart";
 const HTML_PAUSE_BUTTON = "wavepause";
 const HTML_STEP_BUTTON = "wavestep";
@@ -10,7 +11,8 @@ const HTML_DEF_LEVEL_SELECT = "deflevelselect";
 const HTML_RUNNER_TABLE = "runnertable";
 const HTML_HEALER_TABLE = "healertable";
 
-const ENABLE_HEALERS = true;
+const HTML_ENABLE_HEALERS = "enablehealers"
+var ENABLE_HEALERS = false;
 
 window.onload = simInit;
 //{ Simulation - sim
@@ -22,6 +24,7 @@ function simInit() {
 			e.preventDefault();
 		}
 	};
+	simHealerSpawns = document.getElementById(HTML_HEALER_SPAWNS);
 	simStartStopButton = document.getElementById(HTML_START_BUTTON);
 	simStartStopButton.onclick = simStartStopButtonOnClick;
 	simPauseResumeButton = document.getElementById(HTML_PAUSE_BUTTON);
@@ -35,6 +38,9 @@ function simInit() {
 	simTickCountSpan = document.getElementById(HTML_TICK_COUNT);
 	simRunnerTable = document.getElementById(HTML_RUNNER_TABLE);
 	simHealerTable = document.getElementById(HTML_HEALER_TABLE);
+
+	simEnableHealers = document.getElementById(HTML_ENABLE_HEALERS);
+	simEnableHealers.onchange = simEnableHealersOnChange;
 
 	simSetRunning(false);
 
@@ -193,8 +199,13 @@ function simStartStopButtonOnClick() {
 		simReset();
 	} else {
 		let movements = simParseMovementsInput();
+		let spawns = simParseHealerSpawnsInput();
 		if (movements === null) {
 			alert("Invalid runner movements. Example: ws-s");
+			return;
+		}
+		if (spawns === null) {
+			alert("Invalid spawn intervals. Example: 11,21,31");
 			return;
 		}
 		simSetRunning(true);
@@ -205,12 +216,6 @@ function simStartStopButtonOnClick() {
 		let totalHealers = 0;
 		let wave = simWaveSelect.value;
 		switch(Number(wave)) {
-		case 0:
-		    maxRunnersAlive = 3;
-		    totalRunners = 3;
-		    maxHealersAlive = 1;
-		    totalHealers = 1;
-		    break;
 		case 1:
 			maxRunnersAlive = 2;
 			totalRunners = 2;
@@ -267,19 +272,11 @@ function simStartStopButtonOnClick() {
 			totalHealers = 8;
 			break;
 		}
-		baInit(maxRunnersAlive, totalRunners, maxHealersAlive, totalHealers, movements);
+		baInit(maxRunnersAlive, totalRunners, maxHealersAlive, totalHealers, movements, spawns);
 		if (mCurrentMap === mWAVE10) {
 			plInit(baWAVE10_DEFENDER_SPAWN_X, baWAVE10_DEFENDER_SPAWN_Y);
-//			plInit(baWAVE10_MAIN_SPAWN_X, baWAVE10_MAIN_SPAWN_Y);
-//			plInit(baWAVE10_2A_SPAWN_X, baWAVE10_2A_SPAWN_Y);
-//			plInit(baWAVE10_PLAYER_HEALER_SPAWN_X, baWAVE10_PLAYER_HEALER_SPAWN_Y);
-//			plInit(baWAVE10_COLLECTOR_SPAWN_X, baWAVE10_COLLECTOR_SPAWN_Y);
 		} else {
 			plInit(baWAVE1_DEFENDER_SPAWN_X, baWAVE1_DEFENDER_SPAWN_Y);
-//            plInit(baWAVE1_MAIN_SPAWN_X, baWAVE1_MAIN_SPAWN_Y);
-//            plInit(baWAVE1_2A_SPAWN_X, baWAVE1_2A_SPAWN_Y);
-//            plInit(baWAVE1_PLAYER_HEALER_SPAWN_X, baWAVE1_PLAYER_HEALER_SPAWN_Y);
-//            plInit(baWAVE1_COLLECTOR_SPAWN_X, baWAVE1_COLLECTOR_SPAWN_Y);
 		}
 		console.log("Wave " + wave + " started!");
 		simTick();
@@ -298,6 +295,22 @@ function simParseMovementsInput() {
 		}
 	}
 	return movements;
+}
+function simParseHealerSpawnsInput() {
+	let spawns = simHealerSpawns.value.split(",");
+	if (simHealerSpawns.value.includes("-")) {
+		spawns = simHealerSpawns.value.split("-");
+	}
+	spawns = [...new Set(spawns)].filter(Boolean);
+	for (let i=0; i < spawns.length; ++i) {
+		let strToInt = parseFloat(spawns[i]);
+		if (!Number.isInteger(strToInt) || !+spawns[i]) {
+			return null;
+		}
+		spawns[i] = strToInt;
+	}
+	spawns = spawns.sort((a, b)=>{return a - b;});
+	return spawns;
 }
 function simWindowOnKeyDown(e) {
 	if (simIsRunning && plRepairCountdown === 0) {
@@ -355,6 +368,11 @@ function simDefLevelSelectOnChange(e) {
 	simReset();
 	ruInit(Number(simDefLevelSelect.value));
 }
+function simEnableHealersOnChange(e) {
+	mResetMap();
+	simReset();
+	ENABLE_HEALERS = simEnableHealers.checked
+}
 function simTick() {
 	baTick();
 	plTick();
@@ -374,6 +392,7 @@ function simDraw() {
 }
 var simTickTimerId;
 var simMovementsInput;
+var simHealerSpawns;
 var simStartStopButton;
 var simPauseResumeButton;
 var simStepButton;
@@ -387,6 +406,7 @@ var simRunnerTableBody;
 var simHealerTable;
 var simHealerTableBody;
 var simCurrentFoodId;
+var simEnableHealers;
 //}
 //{ Player - pl
 function plInit(x, y) {
@@ -672,6 +692,7 @@ heHealer.prototype.tick = function() {
 
     // healer stands still when it spawns, until player comes into LOS
     // If multiple players in LOS, randomly choose (rand=0 for def, 1 for col)
+	
 	if (this.justSpawned === true) {
 	    if (mHasLineOfSight(plX,plY,this.x,this.y,15) && mHasLineOfSight(baCollectorX,baCollectorY,this.x,this.y,15)) {
             let rand = Math.floor(Math.random() * 2);
@@ -1317,7 +1338,7 @@ const baWAVE1_COLLECTOR_SPAWN_X = 29;
 const baWAVE1_COLLECTOR_SPAWN_Y = 8;
 const baWAVE10_COLLECTOR_SPAWN_X = 32;
 const baWAVE10_COLLECTOR_SPAWN_Y = 8;
-function baInit(maxRunnersAlive, totalRunners, maxHealersAlive, totalHealers, runnerMovements) {
+function baInit(maxRunnersAlive, totalRunners, maxHealersAlive, totalHealers, runnerMovements, healerSpawns) {
 	baRunners = [];
 	baRunnersToRemove = [];
 	baRunnersAlive = 0;
@@ -1333,6 +1354,8 @@ function baInit(maxRunnersAlive, totalRunners, maxHealersAlive, totalHealers, ru
 
 
 	baHealers = [];
+	baHealerSpawns = healerSpawns;
+	baHealerSpawnsIndex = 0;
 
 	baTickCounter = 0;
 	baCollectorX = -1;
@@ -1375,14 +1398,27 @@ function baTick() {
 			}
 			++baRunnersAlive;
 		}
-		if (ENABLE_HEALERS) {
+		if (ENABLE_HEALERS && baHealerSpawns.length === 0) {
 			if (baHealersAlive < baMaxHealersAlive && baHealersKilled + baHealersAlive < baTotalHealers) {
 				if (mCurrentMap === mWAVE_1_TO_9) {
 					baHealers.push(new heHealer(baWAVE1_NPC_HEALER_SPAWN_X, baWAVE1_NPC_HEALER_SPAWN_Y, baCurrentHealerId++));
 				} else {
-					baHealers.push(new heHealer(baWAVE10_NPC_HEALER_SPAWN_X, baWAVE10_NPC_HEALER_SPAWN_Y, baCurrentHealerId));
+					baHealers.push(new heHealer(baWAVE10_NPC_HEALER_SPAWN_X, baWAVE10_NPC_HEALER_SPAWN_Y, baCurrentHealerId++));
 				}
 				++baHealersAlive;
+			}
+		}
+	}
+	if (ENABLE_HEALERS && baHealerSpawns.length > 0){ // custom spawn times
+		if (baHealerSpawns[baHealerSpawnsIndex] === baTickCounter) {
+			if (baHealersAlive < baMaxHealersAlive && baHealersKilled + baHealersAlive < baTotalHealers) {
+				if (mCurrentMap === mWAVE_1_TO_9) {
+					baHealers.push(new heHealer(baWAVE1_NPC_HEALER_SPAWN_X, baWAVE1_NPC_HEALER_SPAWN_Y, baCurrentHealerId++));
+				} else {
+					baHealers.push(new heHealer(baWAVE10_NPC_HEALER_SPAWN_X, baWAVE10_NPC_HEALER_SPAWN_Y, baCurrentHealerId++));
+				}
+				++baHealersAlive;
+				++baHealerSpawnsIndex;
 			}
 		}
 	}
@@ -1526,6 +1562,8 @@ var baHealersAlive;
 var baHealersKilled;
 var baTotalHealers;
 var baMaxHealersAlive;
+var baHealerSpawns;
+var baHealerSpawnsIndex;
 var baPlayers;
 var baCollectorX;
 var baCollectorY;
